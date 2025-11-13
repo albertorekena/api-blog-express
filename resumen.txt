@@ -1,0 +1,15 @@
+--Creación de un blog
+
+--MySql. Tablas:
+.autores: nombre, email y imagen
+·posts: titulo, descripcion, fecha_creacion y categoria (también autor_id)
+
+--Express:
+·La url tendrá el slug "/api"
+·Crear los Crud de: autores y posts
+·Cada post debe contener todos los datos de su autor, no únicamente autor_id
+·Debe haber una url con la que se obtengan todos los posts de un autor
+
+--Entrega:
+·Repositorio en Github
+·Script sql con la creación de la base de datos
