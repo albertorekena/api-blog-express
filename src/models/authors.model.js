@@ -30,7 +30,17 @@ const insert = async newAuthor => {
 	}
 };
 
-const updateById = async () => {
+const update = async (id, updatedAuthor) => {
+	try {
+		await db.query("UPDATE authors SET name=?, image=? WHERE id=?", [id, updatedAuthor.name, updatedAuthor.image]);
+
+		return id;
+	} catch (error) {
+		console.log("Something went wrong with the database.");
+	}
+};
+
+const remove = async id => {
 	try {
 		// const [authors] = await db.query("SELECT * FROM authors");
 
@@ -40,14 +50,4 @@ const updateById = async () => {
 	}
 };
 
-const deleteById = async () => {
-	try {
-		// const [authors] = await db.query("SELECT * FROM authors");
-
-		return author;
-	} catch (error) {
-		console.log("Something went wrong with the database.");
-	}
-};
-
-module.exports = {selectAll, selectById, insert, updateById, deleteById};
+module.exports = {selectAll, selectById, insert, update, remove};

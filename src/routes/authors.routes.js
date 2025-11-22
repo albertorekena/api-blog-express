@@ -1,15 +1,15 @@
 const express = require("express");
-const {getAll, save, getById, updateById, removeById} = require("../controllers/authors.controller");
+const multer = require("multer");
+const {getAll, getById, save} = require("../controllers/authors.controller");
 
 const router = express.Router();
+const upload = multer({dest:"./public"});
 
 router
 	.get("/", getAll)
-	.post("/", save);
+	.post("/", upload.single("image"), save);
 
 router
 	.get("/:id", getById)
-	.put("/:id", updateById)
-	.delete("/:id", removeById)
 
 module.exports = router;
