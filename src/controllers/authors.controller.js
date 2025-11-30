@@ -1,4 +1,4 @@
-const {selectAll, selectById, insert} = require("../models/authors.model");
+const {selectAll, selectById, insert, update, remove} = require("../models/authors.model");
 const fs = require("node:fs");
 
 // @desc      Get all authors
@@ -7,7 +7,7 @@ const getAll = async (req, res) => {
 	try {
 		const authors = await selectAll();
 
-		res.status(200).json({success:true, data:authors});
+		return res.status(200).json({success:true, data:authors});
 	} catch (error) {
 		return res.status(500).json({success:false, message:error.message});
 	}
@@ -17,29 +17,36 @@ const getAll = async (req, res) => {
 // @route     GET /authors/:id
 const getById = async (req, res) => {
 	try {
-		const id = req.params.id
+		const id = req.params.id;
 
 		const author = await selectById(id);
 
-		res.status(200).json({success:true, data:author});
+		if (author) {
+			return res.status(200).json({success:true, data:author});
+		} else {
+			return res.status(404).json({success:false, message:`Author with id=${id} not found.`});
+		}
 	} catch (error) {
 		return res.status(500).json({success:false, message:error.message});
 	}
 };
 
-
 // @desc      Create an author
 // @route     POST /authors
 const save = async (req, res) => {
 	try {
+		if (!req.body.name || !req.file) {
+			return res.status(400).json({success:false, message:"The fields 'name' and 'image' are required."});
+		}
+
 		const newFileName = req.file.filename + `.${req.file.mimetype.split("/")[1]}`;
 		fs.renameSync(req.file.path, `public/${newFileName}`);
 
 		req.body.image = newFileName;
 
-		const newAuthorId = await insert(req.body);
+		const newAuthor = await insert(req.body);
 
-		res.status(200).json({success:true, data:{id:newAuthorId}});
+		res.status(200).json({success:true, data:newAuthor});
 	} catch (error) {
 		return res.status(500).json({success:false, message:error.message});
 	}
@@ -47,12 +54,24 @@ const save = async (req, res) => {
 
 // @desc      Update an author by its id
 // @route     PUT /authors/:id
-const update = async (req, res) => {
+const updateById = async (req, res) => {
 	try {
-		const id = req.params.id
-		// const authors = await selectAll();
+		const id = req.params.id;
 
-		res.status(200).json({success:true, data:author});
+		if (!req.body.name || !req.file) {
+			return res.status(400).json({success:false, message:"The fields 'name' and 'image' are required."});
+		}
+
+		const oldImageName = (await selectById(id)).image;
+
+		const newFileName = req.file.filename + `.${req.file.mimetype.split("/")[1]}`;
+		fs.renameSync(req.file.path, `public/${newFileName}`);
+
+		const updatedAuthor = await update(id, {name:req.body.name, image:newFileName});
+
+		fs.unlinkSync(`public/${oldImageName}`);
+
+		res.status(200).json({success:true, data:updatedAuthor});
 	} catch (error) {
 		return res.status(500).json({success:false, message:error.message});
 	}
@@ -60,15 +79,20 @@ const update = async (req, res) => {
 
 // @desc      Delete an author by its id
 // @route     DELETE /authors/:id
-const remove = async (req, res) => {
+const deleteById = async (req, res) => {
 	try {
 		const id = req.params.id
-		// const authors = await selectAll();
 
-		res.status(200).json({success:true, data:author});
+		const oldAuthor = await selectById(id);
+
+		await remove(id);
+
+		fs.unlinkSync(`public/${oldAuthor.image}`);
+
+		res.status(200).json({success:true, data:oldAuthor});
 	} catch (error) {
 		return res.status(500).json({success:false, message:error.message});
 	}
 };
 
-module.exports = {getAll, getById, save, update, remove};
+module.exports = {getAll, getById, save, updateById, deleteById};
