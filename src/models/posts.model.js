@@ -29,7 +29,7 @@ const selectAll = async () => {
 			}
 		}));
 	} catch (error) {
-		console.log("Something went wrong with the database.");
+		throw error;
 	}
 };
 
@@ -65,7 +65,7 @@ const selectById = async id => {
 			}
 		};
 	} catch (error) {
-		console.log("Something went wrong with the database.");
+		throw error;
 	}
 };
 
@@ -77,7 +77,7 @@ const insert = async ({title, description, category, authors_id}) => {
 
 		return newPost;
 	} catch (error) {
-		console.log("Something went wrong with the database.");
+		throw error;
 	}
 };
 
@@ -89,7 +89,7 @@ const update = async (id, {title, description, category, authors_id}) => {
 
 		return updatedPost;
 	} catch (error) {
-		console.log("Something went wrong with the database.");
+		throw error;
 	}
 };
 
@@ -97,7 +97,7 @@ const remove = async id => {
 	try {
 		await db.query("DELETE FROM posts WHERE id=?", [id]);
 	} catch (error) {
-		console.log("Something went wrong with the database.");
+		throw error;
 	}
 };
 

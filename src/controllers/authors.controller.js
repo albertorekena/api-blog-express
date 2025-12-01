@@ -1,6 +1,7 @@
-const {selectAll, selectById, insert, update, remove, selectPosts} = require("../models/authors.model");
+const {selectAll, insert, update, remove, selectPosts} = require("../models/authors.model");
 const {validationResult} = require("express-validator");
 const fs = require("node:fs");
+const errorsArrayToString = require("../utils/errorsArrayToString.js");
 
 // @desc      Get all authors
 // @route     GET /authors
@@ -31,7 +32,7 @@ const save = async (req, res) => {
 				fs.unlinkSync(req.file.path);
 			}
 
-			return res.status(400).json({success:false, errors:errors.array()});
+			return res.status(400).json({success:false, errors:errorsArrayToString(errors.array())});
 		}
 
 		if (req.file) {
@@ -53,30 +54,28 @@ const save = async (req, res) => {
 // @route     PUT /authors/:id
 const updateById = async (req, res) => {
 	try {
-		const id = req.params.id;
+		const errors = validationResult(req);
 
-		// if (!req.body.name || !req.body.email || !req.file) {
-		// 	if (req.file) {
-		// 		fs.unlinkSync(req.file.path);
-		// 	}
-
-		// 	return res.status(400).json({success:false, message:"The fields 'name', 'email' and 'image' are required."});
-		// }
+		if (!errors.isEmpty()) {
+			return res.status(400).json({success:false, errors:errorsArrayToString(errors.array())});
+		}
 
 		let oldImageName;
 		let newFileName;
 
 		if (req.file) {
 			oldImageName = req.author.image;
-
 			newFileName = req.file.filename + `.${req.file.mimetype.split("/")[1]}`;
-			fs.renameSync(req.file.path, `public/${newFileName}`);
 		}
 
-		const updatedAuthor = await update(id, {name:req.body.name, email:req.body.email, image:newFileName});
+		const updatedAuthor = await update(req.params.id, {name:req.body.name || req.author.name, email:req.body.email || req.author.email, image:newFileName || req.author.image});
 
 		if (req.file) {
-			fs.unlinkSync(`public/${oldImageName}`);
+			fs.renameSync(req.file.path, `public/${newFileName}`);
+
+			if (oldImageName && !/^https?:\/\//.test(oldImageName)) {
+				fs.unlinkSync(`public/${oldImageName}`);
+			}
 		}
 
 		return res.status(200).json({success:true, data:updatedAuthor});
@@ -89,17 +88,15 @@ const updateById = async (req, res) => {
 // @route     DELETE /authors/:id
 const deleteById = async (req, res) => {
 	try {
-		const id = req.params.id
+		const oldAuthor = req.author;
+		const posts = await selectPosts(req.params.id);
+		oldAuthor.posts = posts;
 
-		const oldAuthor = await selectById(id);
+		await remove(req.params.id);
 
-		if (!oldAuthor) {
-			return res.status(404).json({success:false, message:`Author with id=${id} not found.`});
+		if (oldAuthor.image && !/^https?:\/\//.test(oldAuthor.image)) {
+			fs.unlinkSync(`public/${oldAuthor.image}`);
 		}
-
-		await remove(id);
-
-		fs.unlinkSync(`public/${oldAuthor.image}`);
 
 		return res.status(200).json({success:true, data:oldAuthor});
 	} catch (error) {
@@ -111,9 +108,7 @@ const deleteById = async (req, res) => {
 // @route     GET /authors/:id/posts
 const posts = async (req, res) => {
 	try {
-		const id = req.params.id;
-
-		const posts = await selectPosts(id);
+		const posts = await selectPosts(req.params.id);
 
 		return res.status(200).json({success:true, data:posts});
 	} catch (error) {

@@ -1,6 +1,6 @@
 const {selectById} = require("../models/authors.model");
 
-const IsIdFromAuthor = async (req, res, next) => {
+const isIdFromAuthor = async (req, res, next) => {
 	const id = req.params.id;
 
 	try {
@@ -18,4 +18,4 @@ const IsIdFromAuthor = async (req, res, next) => {
 	next();
 };
 
-module.exports = IsIdFromAuthor;
+module.exports = isIdFromAuthor;

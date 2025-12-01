@@ -1,4 +1,6 @@
-const {selectAll, selectById, insert, update, remove} = require("../models/posts.model");
+const {selectAll, insert, update, remove} = require("../models/posts.model");
+const {validationResult} = require("express-validator");
+const errorsArrayToString = require("../utils/errorsArrayToString.js");
 
 // @desc      Get all posts
 // @route     GET /posts
@@ -14,28 +16,18 @@ const getAll = async (req, res) => {
 
 // @desc      Get an author by its id
 // @route     GET /posts/:id
-const getById = async (req, res) => {
-	try {
-		const id = req.params.id;
-
-		const post = await selectById(id);
-
-		if (post) {
-			return res.status(200).json({success:true, data:post});
-		} else {
-			return res.status(404).json({success:false, message:`Post with id=${id} not found.`});
-		}
-	} catch (error) {
-		return res.status(500).json({success:false, message:error.message});
-	}
+const getById = (req, res) => {
+	return res.status(200).json({success:true, data:req.post});
 };
 
 // @desc      Create an author
 // @route     POST /posts
 const save = async (req, res) => {
 	try {
-		if (!req.body.title || !req.body.description || !req.body.category || !req.body.authors_id) {
-			return res.status(400).json({success:false, message:"The fields 'title', 'description', 'category' and 'authors_id' are required."});
+		const errors = validationResult(req);
+
+		if (!errors.isEmpty()) {
+			return res.status(400).json({success:false, errors:errorsArrayToString(errors.array())});
 		}
 
 		const newPost = await insert(req.body);
@@ -50,13 +42,13 @@ const save = async (req, res) => {
 // @route     PUT /posts/:id
 const updateById = async (req, res) => {
 	try {
-		const id = req.params.id;
+		const errors = validationResult(req);
 
-		if (!req.body.title || !req.body.description || !req.body.category || !req.body.authors_id) {
-			return res.status(400).json({success:false, message:"The fields 'title', 'description', 'category' and 'authors_id' are required."});
+		if (!errors.isEmpty()) {
+			return res.status(400).json({success:false, errors:errorsArrayToString(errors.array())});
 		}
 
-		const updatedPost = await update(id, {title:req.body.title, description:req.body.description, category:req.body.category, authors_id:req.body.authors_id});
+		const updatedPost = await update(req.params.id, {title:req.body.title || req.post.title, description:req.body.description || req.post.description, category:req.body.category || req.post.category, authors_id:req.body.authors_id || req.post.authors_id});
 
 		return res.status(200).json({success:true, data:updatedPost});
 	} catch (error) {
@@ -68,15 +60,9 @@ const updateById = async (req, res) => {
 // @route     DELETE /authors/:id
 const deleteById = async (req, res) => {
 	try {
-		const id = req.params.id
+		const oldPost = req.post;
 
-		const oldPost = await selectById(id);
-
-		if (!oldPost) {
-			return res.status(404).json({success:false, message:`Post with id=${id} not found.`});
-		}
-
-		await remove(id);
+		await remove(req.params.id);
 
 		return res.status(200).json({success:true, data:oldPost});
 	} catch (error) {

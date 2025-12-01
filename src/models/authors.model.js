@@ -6,7 +6,7 @@ const selectAll = async () => {
 
 		return authors;
 	} catch (error) {
-		console.log("Something went wrong with the database.");
+		throw error;
 	}
 };
 
@@ -16,7 +16,7 @@ const selectById = async id => {
 
 		return author;
 	} catch (error) {
-		console.log("Something went wrong with the database.");
+		throw error;
 	}
 };
 
@@ -28,7 +28,7 @@ const insert = async ({name, email, image}) => {
 
 		return newAuthor;
 	} catch (error) {
-		console.log("Something went wrong with the database.");
+		throw error;
 	}
 };
 
@@ -40,7 +40,7 @@ const update = async (id, {name, email, image}) => {
 
 		return updatedAuthor;
 	} catch (error) {
-		console.log("Something went wrong with the database.");
+		throw error;
 	}
 };
 
@@ -48,7 +48,7 @@ const remove = async id => {
 	try {
 		await db.query("DELETE FROM authors WHERE id=?", [id]);
 	} catch (error) {
-		console.log("Something went wrong with the database.");
+		throw error;
 	}
 };
 
@@ -81,7 +81,7 @@ const selectPosts = async id => {
 			}
 		}));
 	} catch (error) {
-		console.log("Something went wrong with the database.");
+		throw error;
 	}
 };
 
