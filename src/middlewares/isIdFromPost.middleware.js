@@ -1,4 +1,4 @@
-const validateId = (req, res, next) => {
+const isIdNumber = (req, res, next) => {
 	const id = req.params.id;
 
 	if (isNaN(id)) {
@@ -8,4 +8,4 @@ const validateId = (req, res, next) => {
 	next();
 };
 
-module.exports = validateId;
+module.exports = isIdNumber;

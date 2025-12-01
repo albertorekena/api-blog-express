@@ -20,6 +20,7 @@ USE `blog` ;
 CREATE TABLE IF NOT EXISTS `blog`.`authors` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(100) NOT NULL,
+  `email` VARCHAR(200) NOT NULL,
   `image` VARCHAR(255) NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_UNIQUE` (`id` ASC))

@@ -40,7 +40,7 @@ const save = async (req, res) => {
 
 		const newPost = await insert(req.body);
 
-		res.status(200).json({success:true, data:newPost});
+		return res.status(200).json({success:true, data:newPost});
 	} catch (error) {
 		return res.status(500).json({success:false, message:error.message});
 	}
@@ -58,7 +58,7 @@ const updateById = async (req, res) => {
 
 		const updatedPost = await update(id, {title:req.body.title, description:req.body.description, category:req.body.category, authors_id:req.body.authors_id});
 
-		res.status(200).json({success:true, data:updatedPost});
+		return res.status(200).json({success:true, data:updatedPost});
 	} catch (error) {
 		return res.status(500).json({success:false, message:error.message});
 	}
@@ -72,9 +72,13 @@ const deleteById = async (req, res) => {
 
 		const oldPost = await selectById(id);
 
+		if (!oldPost) {
+			return res.status(404).json({success:false, message:`Post with id=${id} not found.`});
+		}
+
 		await remove(id);
 
-		res.status(200).json({success:true, data:oldPost});
+		return res.status(200).json({success:true, data:oldPost});
 	} catch (error) {
 		return res.status(500).json({success:false, message:error.message});
 	}

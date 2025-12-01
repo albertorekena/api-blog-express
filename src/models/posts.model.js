@@ -1,10 +1,33 @@
 const db = require("../../config/db");
 
-const selectAll = async (req, res) => {
+const selectAll = async () => {
 	try {
-		const [posts] = await db.query("SELECT * FROM posts");
+		const [posts] = await db.query(`
+			SELECT
+				posts.id,
+				posts.title,
+				posts.description,
+				posts.category,
+				posts.authors_id,
+				authors.id as author_id,
+				authors.name as author_name,
+				authors.image as author_image
+			FROM posts
+			LEFT JOIN authors ON posts.authors_id=authors.id
+		`);
 
-		return posts;
+		return posts.map(post => ({
+			id:post.id,
+			title:post.title,
+			description:post.description,
+			category:post.category,
+			authors_id:post.authors_id,
+			author:{
+				id:post.author_id,
+				name:post.author_name,
+				image:post.author_image
+			}
+		}));
 	} catch (error) {
 		console.log("Something went wrong with the database.");
 	}
@@ -12,9 +35,35 @@ const selectAll = async (req, res) => {
 
 const selectById = async id => {
 	try {
-		const [[post]] = await db.query("SELECT * FROM posts WHERE id=?", [id]);
+		const [[post]] = await db.query(`
+			SELECT
+				posts.id,
+				posts.title,
+				posts.description,
+				posts.category,
+				posts.authors_id,
+				authors.id as author_id,
+				authors.name as author_name,
+				authors.image as author_image
+			FROM posts
+			LEFT JOIN authors ON posts.authors_id=authors.id
+			WHERE posts.id = ?
+		`, [id]);
 
-		return post;
+		if (!post) return null;
+
+		return {
+			id:post.id,
+			title:post.title,
+			description:post.description,
+			category:post.category,
+			authors_id:post.authors_id,
+			author:{
+				id:post.author_id,
+				name:post.author_name,
+				image:post.author_image
+			}
+		};
 	} catch (error) {
 		console.log("Something went wrong with the database.");
 	}
